@@ -7,7 +7,7 @@ router = APIRouter()
 
 @router.post(
     "/run",
-    response_model=schemas.ImageRequest,
+    response_model=schemas.ImageResponse,
     status_code=status.HTTP_200_OK,
     summary="이미지 생성/수정",
     description="이미지를 생성/수정합니다."
