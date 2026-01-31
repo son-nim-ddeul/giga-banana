@@ -4,6 +4,7 @@ from typing import Optional
 from google.adk.models import LlmRequest, LlmResponse
 from src.bucket.manager import S3BucketManager
 import logging
+from google.genai.types import FileData
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ class S3UrlPresignPlugin(BasePlugin):
                 if not content.parts:
                     continue
                 
-                for part in content.parts:
+                # parts를 enumerate로 순회
+                for idx, part in enumerate(content.parts):
                     # file_data가 없으면 skip
                     if not (hasattr(part, 'file_data') and part.file_data):
                         continue
@@ -47,8 +49,15 @@ class S3UrlPresignPlugin(BasePlugin):
                         expiration=3600  # 1시간
                     )
                     
-                    # file_uri를 presigned URL로 변경
-                    part.file_data.file_uri = presigned_url
+                    mime_type = part.file_data.mime_type
+                    display_name = getattr(part.file_data, 'display_name', None)
+                    
+                    # 새로운 FileData 객체로 교체
+                    content.parts[idx].file_data = FileData(
+                        file_uri=presigned_url,
+                        mime_type=mime_type,
+                        display_name=display_name
+                    )
             
             # 수정된 요청이 LLM으로 전달되도록 None 반환
             return None
