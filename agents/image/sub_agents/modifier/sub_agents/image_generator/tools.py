@@ -38,7 +38,9 @@ def encode_image(file_data: bytes) -> str:
 
 
 def download_image(image_url: str) -> bytes:
-    response = requests.get(image_url, timeout=30)
+    bucket_manager = S3BucketManager()
+    s3_url = bucket_manager.generate_presigned_url(image_url)
+    response = requests.get(s3_url, timeout=30)
     response.raise_for_status()
     return response.content
 
@@ -97,7 +99,7 @@ class GeneratedImageResponse(BaseModel):
 
 
 
-async def generate_image(user_id: str, workflow: dict[str, Any]) -> GeneratedImageResponse:
+async def generate_image(user_id: str, workflow: dict[str, Any]) -> dict[str, str]:
     """
     이미지를 생성합니다.
 
