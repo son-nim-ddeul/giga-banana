@@ -209,7 +209,7 @@ async def edit_image(
     
     # 세션의 최근 이벤트에서 이미지 file_uri 찾기
     original_image_url = None
-    session = tool_context.invocation_context.session
+    session = tool_context.session
     
     # 최근 이벤트부터 역순으로 탐색
     for event in reversed(session.events):
