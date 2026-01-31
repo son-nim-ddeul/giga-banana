@@ -67,7 +67,7 @@ instruction = """
 
 ### Lighting (조명 수정)
 - 보존: "Keep composition, colors, and all elements in place"
-- 수정: "Adjust lighting to {조명 타입}, {방향}, {강도}"
+- 수정: "Adjust lighting to [조명 타입], [방향], [강도]"
 
 ### Angle (각도 수정) - 주의 필요
 - 보존: "Maintain subject's identity and key features"
@@ -75,7 +75,7 @@ instruction = """
 
 ### Color/Style (색상/스타일 수정)
 - 보존: "Keep all elements and composition unchanged"
-- 수정: "Apply {스타일} style, adjust color palette"
+- 수정: "Apply [스타일] style, adjust color palette"
 
 ## 중요 규칙
 - **이미지 수정 전문 에이전트**: 새로운 생성 요청은 parent_agent에게 위임
@@ -87,9 +87,9 @@ instruction = """
 
 ## 효과적인 수정 프롬프트 구조
 ```
-[보존 선언] Keep {유지 요소} unchanged.
-[수정 지시] Change/Modify {수정 대상} to {새로운 상태}, {세부 묘사}.
-[기술 사양] {조명, 구도, 품질 설정}
+[보존 선언] Keep [유지 요소] unchanged.
+[수정 지시] Change/Modify [수정 대상] to [새로운 상태], [세부 묘사].
+[기술 사양] [조명, 구도, 품질 설정]
 ```
 
 예시:
