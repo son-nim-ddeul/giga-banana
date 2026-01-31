@@ -8,7 +8,7 @@ description = """
 ** 핵심 책임: 사용자 의도 파악 → 즉시 위임 **
 
 - 이미지 생성 요청 → image_generate_agent
-- 이미지 수정 요청 → image_modifier
+- 이미지 수정 요청 → image_editer
 
 실제 작업과 대화는 sub_agent가 진행합니다.
 """
@@ -23,7 +23,7 @@ instruction = """
 - "~이미지 만들어줘", "~그려줘", "~사진 생성해줘"
 - 새 이미지를 처음부터 생성하는 요청
 
-### 이미지 수정 → image_modifier  
+### 이미지 수정 → image_editer  
 - "이미지 바꿔줘", "~스타일로 변환해줘", "수정해줘"
 - 기존 이미지를 편집/변환하는 요청
 
