@@ -3,6 +3,8 @@ from google.adk.agents import LlmAgent
 from google.adk.models.google_llm import Gemini
 from google.genai import types
 
+from .plugins.s3_url_presign import S3UrlPresignPlugin
+
 from .prompt import (
     image_specailist_description,
     image_specailist_instruction
@@ -56,4 +58,5 @@ root_agent = LlmAgent(
 app = App(
     root_agent=root_agent, 
     name="image",
+    plugins=[S3UrlPresignPlugin()]
 )
