@@ -90,7 +90,7 @@ def _create_file_data_part(
 ) -> types.Part:
     """file_data Part 생성"""
     return types.Part.from_uri(
-        uri=file_uri,
+        file_uri=file_uri,
         mime_type=mime_type
     )
 
