@@ -46,9 +46,14 @@ def download_image(image_url: str) -> bytes:
 class GeneratedImageResponse(BaseModel):
     user_id: str
     image_url: str
+    workflow: dict[str, Any] | None = None
 
     @classmethod
-    def create_from_response(cls, response: requests.Response) -> GeneratedImageResponse:
+    async def create_from_response(
+        cls, 
+        response: requests.Response,
+        workflow: dict[str, Any] | None = None
+    ) -> GeneratedImageResponse:
         response.raise_for_status()
         body = response.json()
         user_id: str = body["user_id"]
@@ -56,7 +61,7 @@ class GeneratedImageResponse(BaseModel):
         file_data = decode_image(base64_image)
 
         bucket_manager = _get_bucket_manager()
-        image_url = bucket_manager.upload_file(
+        image_url = await bucket_manager.upload_file(
                 user_id=user_id,
                 file_data=file_data,
                 mime_type=MIME_TYPE_JPEG,
@@ -64,10 +69,35 @@ class GeneratedImageResponse(BaseModel):
 
         if image_url is None:
             raise RuntimeError("S3 upload returned no URL")
-        return cls(user_id=user_id, image_url=image_url)
+        
+        # Creations 테이블에 저장
+        from src.database.session import RDS_Session
+        from src.session.service import create_creation
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
+        db = RDS_Session()
+        try:
+            create_creation(
+                db=db,
+                user_id=user_id,
+                image_url=image_url,
+                workflow=workflow,  # 워크플로우 저장
+                creation_metadata=None  # meta_data는 비워둠
+            )
+            logger.info(f"Creation record saved for modified image: {image_url}")
+        except Exception as db_error:
+            logger.error(f"Failed to save creation record: {db_error}", exc_info=True)
+            # DB 저장 실패해도 image_url은 반환 (이미지는 생성됨)
+        finally:
+            db.close()
+        
+        return cls(user_id=user_id, image_url=image_url, workflow=workflow)
 
 
-def generate_image(user_id: str, workflow: dict[str, Any]) -> dict[str, str]:
+
+async def generate_image(user_id: str, workflow: dict[str, Any]) -> GeneratedImageResponse:
     """
     이미지를 생성합니다.
 
@@ -80,7 +110,7 @@ def generate_image(user_id: str, workflow: dict[str, Any]) -> dict[str, str]:
     """
     payload = {"user_id": user_id, "workflow": workflow}
     response = requests.post(WORKFLOW_RUN_URL, json=payload, timeout=120)
-    return GeneratedImageResponse.create_from_response(response).model_dump_json()
+    return await GeneratedImageResponse.create_from_response(response, workflow=workflow).model_dump_json()
 
 
 def extract_image_prompt(image_url: str, top_n: int = DEFAULT_TOP_N) -> list[str]:

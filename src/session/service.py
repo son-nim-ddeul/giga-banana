@@ -1,15 +1,57 @@
 from sqlalchemy.orm import Session
-from .models import Session, Event
+from .models import Session as SessionModel, Event, Creations
 from .schemas import EventContent, EventGetResponse
 import json
 import logging
-from google import genai
+from datetime import datetime
+from uuid import uuid4
 
 
 logger = logging.getLogger(__name__)
 
+
+def create_creation(
+    db: Session,
+    user_id: str,
+    image_url: str,
+    workflow: dict | None = None,
+    creation_metadata: dict | None = None,
+    status: str = 'active'
+) -> Creations:
+    """
+    Creations 레코드 생성
+    
+    Args:
+        db: DB 세션
+        user_id: 사용자 ID
+        image_url: S3 이미지 URL
+        workflow: 워크플로우 dict (optional, JSON으로 저장)
+        creation_metadata: 메타데이터 dict (optional, JSON으로 저장)
+        status: 상태 (기본: active)
+    
+    Returns:
+        생성된 Creations 객체
+    """
+    creation = Creations(
+        creation_id=str(uuid4()),
+        user_id=user_id,
+        image_url=image_url,
+        workflow=json.dumps(workflow) if workflow else None,
+        meta_data=json.dumps(creation_metadata) if creation_metadata else None,
+        created_date=datetime.utcnow(),
+        status=status
+    )
+    
+    db.add(creation)
+    db.commit()
+    db.refresh(creation)
+    
+    logger.info(f"Created creation record: {creation.creation_id} for user {user_id}")
+    return creation
+
+
 def get_list_sessions(db: Session, user_id: str):
-    return db.query(Session).filter(Session.user_id == user_id).all()
+    return db.query(SessionModel).filter(SessionModel.user_id == user_id).all()
 
 
 def get_list_events(db: Session, session_id: str):

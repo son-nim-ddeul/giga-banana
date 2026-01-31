@@ -88,6 +88,27 @@ async def _generate_image_async(
                 )
                 
                 logger.info(f"S3 업로드 완료: {s3_uri}")
+                
+                # Creations 테이블에 저장
+                from src.database.session import RDS_Session
+                from src.session.service import create_creation
+                
+                db = RDS_Session()
+                try:
+                    create_creation(
+                        db=db,
+                        user_id=user_id,
+                        image_url=s3_uri,
+                        workflow=None,  # 이미지 생성의 경우 null
+                        creation_metadata=None  # meta_data는 비워둠
+                    )
+                    logger.info(f"Creation record saved for image: {s3_uri}")
+                except Exception as db_error:
+                    logger.error(f"Failed to save creation record: {db_error}", exc_info=True)
+                    # DB 저장 실패해도 S3 URI는 반환 (이미지는 생성됨)
+                finally:
+                    db.close()
+                
                 return s3_uri
         
         raise Exception("응답에서 이미지 데이터를 찾을 수 없습니다.")
