@@ -1,0 +1,20 @@
+[project]
+name = "giga-banana"
+version = "0.1.0"
+description = "이미지 생성 및 수정 에이전트 프로젝트"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.123.10",
+    "google-adk",
+    "sqlalchemy>=2.0.36",
+    "psycopg2-binary>=2.9.9",
+    "aiosqlite>=0.20.0",
+    "sqlite-vec>=0.1.1",
+    "pydantic-settings>=2.7.0",
+    "pytest>=8.0.0",
+    "aioboto3>=15.5.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-s"

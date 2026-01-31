@@ -1,0 +1,1 @@
+from agents.image.agent import root_agent as image_root_agent
