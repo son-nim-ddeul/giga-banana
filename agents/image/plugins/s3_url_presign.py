@@ -79,38 +79,33 @@ class S3UrlPresignPlugin(BasePlugin):
         LLM 응답의 parts 내에 presigned URL이 있는 경우 원본 S3 URI로 복원
         """
         try:
-            # candidates가 없으면 early return
-            if not llm_response.candidates:
+            # content가 없거나 parts가 없으면 early return
+            if not llm_response.content or not llm_response.content.parts:
                 return None
             
-            # 모든 Candidate를 순회
-            for candidate in llm_response.candidates:
-                if not candidate.content or not candidate.content.parts:
+            # parts를 enumerate로 순회
+            for idx, part in enumerate(llm_response.content.parts):
+                # file_data가 없으면 skip
+                if not (hasattr(part, 'file_data') and part.file_data):
                     continue
                 
-                # parts를 enumerate로 순회
-                for idx, part in enumerate(candidate.content.parts):
-                    # file_data가 없으면 skip
-                    if not (hasattr(part, 'file_data') and part.file_data):
-                        continue
+                file_uri = getattr(part.file_data, 'file_uri', None)
+                
+                # 매핑에 있는 presigned URL이면 원본 S3 URI로 복원
+                if file_uri and file_uri in self._url_mapping:
+                    original_s3_uri, mime_type, display_name = self._url_mapping[file_uri]
                     
-                    file_uri = getattr(part.file_data, 'file_uri', None)
+                    # 원본 S3 URI로 교체
+                    llm_response.content.parts[idx].file_data = FileData(
+                        file_uri=original_s3_uri,
+                        mime_type=mime_type,
+                        display_name=display_name
+                    )
                     
-                    # 매핑에 있는 presigned URL이면 원본 S3 URI로 복원
-                    if file_uri and file_uri in self._url_mapping:
-                        original_s3_uri, mime_type, display_name = self._url_mapping[file_uri]
-                        
-                        # 원본 S3 URI로 교체
-                        candidate.content.parts[idx].file_data = FileData(
-                            file_uri=original_s3_uri,
-                            mime_type=mime_type,
-                            display_name=display_name
-                        )
-                        
-                        # 매핑에서 제거 (메모리 정리)
-                        del self._url_mapping[file_uri]
-                        
-                        logger.info(f"[S3UrlPresignPlugin] Restored S3 URI: {original_s3_uri}")
+                    # 매핑에서 제거 (메모리 정리)
+                    del self._url_mapping[file_uri]
+                    
+                    logger.info(f"[S3UrlPresignPlugin] Restored S3 URI: {original_s3_uri}")
             
             return None
             

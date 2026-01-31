@@ -56,13 +56,12 @@ class GeneratedImageResponse(BaseModel):
         file_data = decode_image(base64_image)
 
         bucket_manager = _get_bucket_manager()
-        image_url = asyncio.run(
-            bucket_manager.upload_file(
+        image_url = bucket_manager.upload_file(
                 user_id=user_id,
                 file_data=file_data,
                 mime_type=MIME_TYPE_JPEG,
-            )
         )
+
         if image_url is None:
             raise RuntimeError("S3 upload returned no URL")
         return cls(user_id=user_id, image_url=image_url)

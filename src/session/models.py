@@ -21,3 +21,14 @@ class Event(Base):
     session_id = Column(String(128), nullable=False, index=True)
     timestamp = Column(DateTime, nullable=False)
     event_data = Column(Text, nullable=False)
+
+class Creations(Base):
+    __tablename__ = 'creations'
+    
+    creation_id = Column(String(128), primary_key=True)
+    user_id = Column(String(128), nullable=False, index=True)
+    workflow = Column(Text, nullable=True)
+    metadata = Column(Text, nullable=True)
+    image_url = Column(String(512), nullable=False)
+    created_date = Column(DateTime, nullable=False, index=True)
+    status = Column(String(10), nullable=False, default='active')
