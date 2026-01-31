@@ -63,7 +63,7 @@ instruction = """
 
 ### Background (배경 수정) - 가장 안전한 수정
 - 보존: "Keep the subject completely unchanged in all aspects"
-- 수정: "Replace background with {환경}, {시간대}, {분위기}"
+- 수정: "Replace background with [환경], [시간대], [분위기]"
 
 ### Lighting (조명 수정)
 - 보존: "Keep composition, colors, and all elements in place"
