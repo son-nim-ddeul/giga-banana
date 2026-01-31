@@ -44,7 +44,7 @@ class S3UrlPresignPlugin(BasePlugin):
                     if not (file_uri and file_uri.startswith("s3://giga-banana/")):
                         continue
                     
-                    presigned_url = await self.s3_manager.generate_presigned_url(
+                    presigned_url = self.s3_manager.generate_presigned_url(
                         file_uri=file_uri,
                         expiration=3600  # 1시간
                     )

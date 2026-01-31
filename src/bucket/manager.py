@@ -65,13 +65,15 @@ class S3BucketManager(BaseModel):
                 logger.error(f"Failed to upload file: {e}")
                 raise e
 
-    async def generate_presigned_url(self, file_uri: str, expiration: int = 3600) -> str:
-        """S3 presigned URL 생성"""
+    def generate_presigned_url(self, file_uri: str, expiration: int = 3600) -> str:
+        """S3 presigned URL 생성 (동기 함수 - generate_presigned_url은 비동기 불필요)"""
+        import boto3
+        
         key = file_uri.replace(f"s3://giga-banana/", "")
-        async with self._client() as s3:
-            url = s3.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': 'giga-banana', 'Key': key},
-                ExpiresIn=expiration
-            )
-            return url
+        s3_client = boto3.client('s3', region_name='ap-northeast-2')
+        url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': 'giga-banana', 'Key': key},
+            ExpiresIn=expiration
+        )
+        return url

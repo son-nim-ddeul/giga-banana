@@ -84,7 +84,7 @@ async def setup_session_and_runner(
     )
     return session.id, runner
 
-async def _create_file_data_part(
+def _create_file_data_part(
     file_uri: str, 
     mime_type: str
 ) -> types.Part:
@@ -93,7 +93,7 @@ async def _create_file_data_part(
     if file_uri.startswith("s3://giga-banana/"):
         from src.bucket.manager import S3BucketManager
         s3_manager = S3BucketManager()
-        file_uri = await s3_manager.generate_presigned_url(
+        file_uri = s3_manager.generate_presigned_url(
             file_uri=file_uri,
             expiration=3600  # 1시간
         )
@@ -113,7 +113,7 @@ async def execute_agent(
 ) -> dict[str, Any]:
     parts = [Part.from_text(text=user_message)]
     if image_upload_url and image_upload_mime_type:
-        parts.append(await _create_file_data_part(image_upload_url, image_upload_mime_type))
+        parts.append(_create_file_data_part(image_upload_url, image_upload_mime_type))
     execute_message = Content(role = 'user', parts=parts)
 
     final_response_content = {
