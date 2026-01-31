@@ -11,7 +11,7 @@ from src.bucket.manager import S3BucketManager
 
 # API
 API_BASE_URL = "https://ui5lkk116duoen-8188.proxy.runpod.net/api/v2"
-WORKFLOW_RUN_URL = f"{API_BASE_URL}/workflow/run"
+WORKFLOW_RUN_URL = f"{API_BASE_URL}/workflow/run?response_format=base64"
 TAGGER_IMAGES_URL = f"{API_BASE_URL}/tagger/images"
 
 # Defaults
