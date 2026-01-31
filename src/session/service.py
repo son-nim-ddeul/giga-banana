@@ -25,12 +25,8 @@ def get_list_events(db: Session, session_id: str):
             
             # Event 객체로 복원
             from google.adk.events import Event as ADKEvent
-            adk_event = ADKEvent.model_validate({
-                **event_dict,
-                "id": db_event.id,
-                "invocation_id": db_event.invocation_id,
-                "timestamp": db_event.timestamp.timestamp(),
-            })
+            
+            adk_event = ADKEvent.model_validate(event_dict)
             
             # author 추출
             author = adk_event.author
