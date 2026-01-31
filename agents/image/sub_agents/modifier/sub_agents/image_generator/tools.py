@@ -112,7 +112,8 @@ async def generate_image(user_id: str, workflow: dict[str, Any]) -> dict[str, st
     """
     payload = {"user_id": user_id, "workflow": workflow}
     response = requests.post(WORKFLOW_RUN_URL, json=payload, timeout=120)
-    return await GeneratedImageResponse.create_from_response(response, workflow=workflow).model_dump_json()
+    res = await GeneratedImageResponse.create_from_response(response, workflow=workflow)
+    return res.model_dump_json()
 
 
 def extract_image_prompt(image_url: str, top_n: int = DEFAULT_TOP_N) -> list[str]:
