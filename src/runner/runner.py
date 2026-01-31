@@ -138,8 +138,21 @@ async def execute_agent(
             if isinstance(final_response_content, dict):
                 parsed_response = final_response_content
             else:
+                # 마크다운 코드 블록 제거 (```json ... ``` 또는 ``` ... ```)
+                content_str = str(final_response_content).strip()
+                if content_str.startswith("```"):
+                    # 첫 줄 제거 (```json 또는 ```)
+                    lines = content_str.split('\n')
+                    if len(lines) > 2 and lines[-1].strip() == "```":
+                        # 마지막 줄도 ``` 인 경우 제거
+                        content_str = '\n'.join(lines[1:-1])
+                    else:
+                        # 첫 줄만 제거
+                        content_str = '\n'.join(lines[1:])
+                    content_str = content_str.strip()
+                
                 # JSON 문자열인 경우 파싱해서 반환
-                parsed_response = json.loads(final_response_content)
+                parsed_response = json.loads(content_str)
             
             # ImageResponse 스키마에 맞는지 검증
             if isinstance(parsed_response, dict) and "response_message" in parsed_response:
