@@ -63,7 +63,7 @@ async def _generate_image_async(
         # Gemini API 호출
         logger.info("Gemini API 호출 중...")
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-3-pro-image-preview",
             contents=contents,
             config=config
         )
