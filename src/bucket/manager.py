@@ -76,13 +76,14 @@ class S3BucketManager(BaseModel):
         """
         async with self._client() as s3:
             key = file_uri.replace("s3://giga-banana/", "")
+            logger.info(f"S3 다운로드 시도 - Bucket: giga-banana, Key: {key}")
             try:
                 response = await s3.get_object(Bucket="giga-banana", Key=key)
                 data = await response['Body'].read()
-                logger.info(f"S3 파일 다운로드 완료: {file_uri}")
+                logger.info(f"S3 파일 다운로드 완료: {file_uri} ({len(data)} bytes)")
                 return data
             except Exception as e:
-                logger.error(f"Failed to download file: {e}")
+                logger.error(f"S3 다운로드 실패 - Bucket: giga-banana, Key: {key}, Error: {e}")
                 raise e
 
     def generate_presigned_url(self, file_uri: str, expiration: int = 3600) -> str:

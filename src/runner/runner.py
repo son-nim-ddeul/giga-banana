@@ -138,21 +138,29 @@ async def execute_agent(
             if isinstance(final_response_content, dict):
                 parsed_response = final_response_content
             else:
-                # 마크다운 코드 블록 제거 (```json ... ``` 또는 ``` ... ```)
+                # 문자열로 변환 및 정리
                 content_str = str(final_response_content).strip()
+                logger.debug(f"Original content: {content_str[:200]}")  # 처음 200자만 로그
+                
+                # 마크다운 코드 블록 제거 (```json ... ``` 또는 ``` ... ```)
                 if content_str.startswith("```"):
-                    # 첫 줄 제거 (```json 또는 ```)
                     lines = content_str.split('\n')
-                    if len(lines) > 2 and lines[-1].strip() == "```":
-                        # 마지막 줄도 ``` 인 경우 제거
-                        content_str = '\n'.join(lines[1:-1])
-                    else:
-                        # 첫 줄만 제거
-                        content_str = '\n'.join(lines[1:])
-                    content_str = content_str.strip()
+                    # 첫 줄 제거 (```json 또는 ```)
+                    lines = lines[1:]
+                    # 마지막 줄이 ``` 인 경우 제거
+                    if lines and lines[-1].strip() == "```":
+                        lines = lines[:-1]
+                    content_str = '\n'.join(lines).strip()
+                    logger.debug(f"After removing markdown: {content_str[:200]}")
+                
+                # 단일 백틱으로 감싸진 경우 제거 (`{...}`)
+                if content_str.startswith('`') and content_str.endswith('`'):
+                    content_str = content_str[1:-1].strip()
+                    logger.debug(f"After removing backticks: {content_str[:200]}")
                 
                 # JSON 문자열인 경우 파싱해서 반환
                 parsed_response = json.loads(content_str)
+                logger.debug(f"Parsed response: {parsed_response}")
             
             # ImageResponse 스키마에 맞는지 검증
             if isinstance(parsed_response, dict) and "response_message" in parsed_response:

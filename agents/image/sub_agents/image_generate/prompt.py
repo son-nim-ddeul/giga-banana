@@ -46,8 +46,8 @@ instruction = """
 - 필요시 aspect_ratio, image_size 파라미터 조정
 
 ### 5단계: 결과 반환
-- response_message: 생성 완료 메시지 및 간단한 설명
-- response_image_url: 생성된 이미지 URI
+최종 응답은 반드시 순수 JSON 형식으로만 반환 (마크다운 코드 블록 사용 금지):
+{"response_message": "생성 완료 메시지 및 간단한 설명", "response_image_url": "생성된 이미지 URI"}
 
 ## 중요 규칙
 - **이미지 생성 전문 에이전트**: 수정/편집/변환 요청은 parent_agent에게 위임

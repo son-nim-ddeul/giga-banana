@@ -49,11 +49,47 @@ async def _edit_image_async(
     try:
         logger.info(f"이미지 수정 시작 - user_id: {user_id}, original: {original_image_url}")
         
-        # S3에서 원본 이미지 다운로드
-        bucket_manager = S3BucketManager()
-        original_image_data = await bucket_manager.download_file(file_uri=original_image_url)
+        # Presigned URL 또는 일반 HTTP URL이 온 경우 처리
+        if original_image_url.startswith("http://") or original_image_url.startswith("https://"):
+            # S3 presigned URL인 경우 S3 URI로 변환 시도
+            if "giga-banana.s3" in original_image_url or "s3.ap-northeast-2.amazonaws.com/giga-banana" in original_image_url:
+                logger.info(f"S3 presigned URL 감지. S3 URI로 변환 시도")
+                from urllib.parse import urlparse
+                parsed = urlparse(original_image_url)
+                # URL path에서 키 추출 (예: /giga-banana/images/user/file.jpg 또는 /images/user/file.jpg)
+                path = parsed.path
+                if path.startswith("/giga-banana/"):
+                    key = path[len("/giga-banana/"):]
+                elif path.startswith("/"):
+                    key = path[1:]  # 첫 슬래시 제거
+                else:
+                    key = path
+                
+                s3_uri = f"s3://giga-banana/{key}"
+                logger.info(f"Presigned URL을 S3 URI로 변환: {s3_uri}")
+                original_image_url = s3_uri
         
-        logger.info(f"원본 이미지 다운로드 완료 ({len(original_image_data)} bytes)")
+        # S3 URI 또는 HTTP URL 처리
+        if original_image_url.startswith("s3://giga-banana/"):
+            # S3 URI인 경우 정상 처리
+            bucket_manager = S3BucketManager()
+            logger.info(f"S3 다운로드 시도 중: {original_image_url}")
+            original_image_data = await bucket_manager.download_file(file_uri=original_image_url)
+            logger.info(f"원본 이미지 다운로드 완료 ({len(original_image_data)} bytes)")
+        elif original_image_url.startswith("http://") or original_image_url.startswith("https://"):
+            logger.warning(f"일반 HTTP URL에서 직접 다운로드 시도: {original_image_url}")
+            # 일반 HTTP URL에서 직접 다운로드
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.get(original_image_url) as response:
+                    response.raise_for_status()
+                    original_image_data = await response.read()
+                    logger.info(f"HTTP URL에서 이미지 다운로드 완료 ({len(original_image_data)} bytes)")
+        else:
+            raise Exception(f"지원하지 않는 이미지 URL 형식입니다. S3 URI 또는 HTTP(S) URL이어야 합니다. 받은 값: {original_image_url}")
+        
+        # S3BucketManager는 업로드용으로 다시 필요
+        bucket_manager = S3BucketManager()
         
         # Gemini 클라이언트 생성
         client = genai.Client(api_key=settings.google_api_key)

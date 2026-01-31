@@ -52,8 +52,8 @@ instruction = """
 - 필요시 aspect_ratio, image_size 파라미터 조정
 
 ### 5단계: 결과 반환
-- response_message: 수정 완료 메시지 및 변경사항 설명
-- response_image_url: 수정된 이미지 URI
+최종 응답은 반드시 순수 JSON 형식으로만 반환 (마크다운 코드 블록 사용 금지):
+{"response_message": "수정 완료 메시지 및 변경사항 설명", "response_image_url": "수정된 이미지 URI"}
 
 ## 수정 카테고리 가이드
 
