@@ -78,21 +78,13 @@ async def _generate_image_async(
                 # 이미지 데이터 처리
                 image_data = part.inline_data.data
                 mime_type = part.inline_data.mime_type
-                file_extension = mimetypes.guess_extension(mime_type) or ".jpg"
-                
-                # 파일명 생성
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                file_name = f"{timestamp}_{uuid.uuid4()}{file_extension}"
-                
-                logger.info(f"이미지 생성 완료, S3 업로드 시작 - file_name: {file_name}")
                 
                 # S3 업로드 (async)
                 bucket_manager = S3BucketManager()
                 s3_uri = await bucket_manager.upload_file(
                     user_id=user_id,
                     file_data=image_data,
-                    mime_type=mime_type,
-                    file_name=file_name
+                    mime_type=mime_type
                 )
                 
                 logger.info(f"S3 업로드 완료: {s3_uri}")
