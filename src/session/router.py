@@ -49,19 +49,15 @@ async def list_sessions(user_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get(
-    "/{session_id}",
-    response_model=schemas.SessionGetResponse,
+    "/events/{session_id}",
+    response_model=schemas.EventListResponse,
     status_code=status.HTTP_200_OK,
-    summary="세션 조회",
-    description="세션을 조회합니다."
+    summary="이벤트 목록 조회",
+    description="이벤트 목록을 조회합니다."
 )
-async def get_single_session(session_id: str, db: Session = Depends(get_db)):
+async def list_events(session_id: str, db: Session = Depends(get_db)):
     try:
-        session = service.get_single_session(db, session_id)
-        if not session:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="세션을 찾을 수 없습니다.")
-        return schemas.SessionGetResponse(
-            session_id=session.id
-        )
+        events = service.get_list_events(db, session_id)
+        return schemas.EventListResponse(events=events)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
