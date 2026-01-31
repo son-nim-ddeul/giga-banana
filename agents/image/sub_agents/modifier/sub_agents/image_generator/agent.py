@@ -1,4 +1,4 @@
-from google.adk.agents import SequentialAgent
+from google.adk.agents import LlmAgent
 from google.adk.models import Gemini
 from google.genai import types
 from ...tools import (
@@ -9,7 +9,7 @@ from ...tools import (
 from .tools import generate_image, extract_image_prompt
 
 
-image_generator_agent = SequentialAgent(
+image_generator_agent = LlmAgent(
     name="image_generator",
     model=Gemini(
         model="gemini-2.5-flash",
