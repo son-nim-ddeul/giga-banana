@@ -39,18 +39,70 @@ def get_list_events(db: Session, session_id: str):
             # error_message 추출
             error_message = adk_event.error_message if hasattr(adk_event, 'error_message') else None
             
-            # content 파싱 - 실제로 표시할 내용이 있는 것만 추가
+            # content 파싱
             if adk_event.content and adk_event.content.parts:
                 for part in adk_event.content.parts:
                     event_content = None
                     
-                    # text가 있으면 message로
+                    # text가 있으면 처리
                     if part.text:
-                        event_content = EventContent(
-                            message=part.text,
-                            image_upload_url=None,
-                            image_upload_mime_type=None
-                        )
+                        # output_schema로 생성된 JSON 응답인지 확인
+                        try:
+                            # JSON 파싱 시도
+                            json_data = json.loads(part.text)
+                            # response_message와 response_image_url이 있으면 output_schema 응답
+                            if isinstance(json_data, dict) and ('response_message' in json_data or 'response_image_url' in json_data):
+                                message = json_data.get('response_message')
+                                image_url = json_data.get('response_image_url')
+                                
+                                # message가 있으면 추가
+                                if message:
+                                    events_response.append(EventGetResponse(
+                                        author=author_display,
+                                        content=EventContent(
+                                            message=message,
+                                            image_upload_url=None,
+                                            image_upload_mime_type=None
+                                        ),
+                                        error_message=error_message
+                                    ))
+                                
+                                # image가 있으면 별도로 추가
+                                if image_url:
+                                    events_response.append(EventGetResponse(
+                                        author=author_display,
+                                        content=EventContent(
+                                            message=None,
+                                            image_upload_url=image_url,
+                                            image_upload_mime_type="image/png"  # 기본값
+                                        ),
+                                        error_message=error_message
+                                    ))
+                            else:
+                                # JSON이지만 output_schema 형식이 아님 - 일반 텍스트로 처리
+                                event_content = EventContent(
+                                    message=part.text,
+                                    image_upload_url=None,
+                                    image_upload_mime_type=None
+                                )
+                                events_response.append(EventGetResponse(
+                                    author=author_display,
+                                    content=event_content,
+                                    error_message=error_message
+                                ))
+                        except (json.JSONDecodeError, ValueError):
+                            # JSON이 아니면 일반 텍스트로 처리
+                            event_content = EventContent(
+                                message=part.text,
+                                image_upload_url=None,
+                                image_upload_mime_type=None
+                            )
+                            events_response.append(EventGetResponse(
+                                author=author_display,
+                                content=event_content,
+                                error_message=error_message
+                            ))
+                    
                     # file_data가 있으면 image로
                     elif part.file_data:
                         event_content = EventContent(
@@ -58,16 +110,13 @@ def get_list_events(db: Session, session_id: str):
                             image_upload_url=part.file_data.file_uri,
                             image_upload_mime_type=part.file_data.mime_type
                         )
-                    
-                    # 실제 content가 있을 때만 추가
-                    if event_content:
                         events_response.append(EventGetResponse(
                             author=author_display,
                             content=event_content,
                             error_message=error_message
                         ))
             
-            # error_message만 있는 경우에도 추가 (에러 표시 필요)
+            # error_message만 있는 경우
             elif error_message:
                 events_response.append(EventGetResponse(
                     author=author_display,
@@ -77,6 +126,10 @@ def get_list_events(db: Session, session_id: str):
                 
         except Exception as e:
             logger.error(f"Failed to parse event_data for event {db_event.id}: {e}")
-            raise e
+            events_response.append(EventGetResponse(
+                author="unknown",
+                content=None,
+                error_message=f"Failed to parse event: {str(e)}"
+            ))
     
     return events_response
