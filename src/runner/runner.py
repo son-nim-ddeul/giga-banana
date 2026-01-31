@@ -134,15 +134,20 @@ async def execute_agent(
 
         # JSON 형태인지 확인 후 파싱
         try:
-            # JSON 문자열인 경우 파싱해서 반환
-            parsed_response = json.loads(final_response_content)
+            # 이미 딕셔너리인 경우 파싱 불필요
+            if isinstance(final_response_content, dict):
+                parsed_response = final_response_content
+            else:
+                # JSON 문자열인 경우 파싱해서 반환
+                parsed_response = json.loads(final_response_content)
+            
             # ImageResponse 스키마에 맞는지 검증
             if isinstance(parsed_response, dict) and "response_message" in parsed_response:
                 return parsed_response
             else:
                 # JSON이지만 예상한 형태가 아닌 경우
                 return {
-                    "response_message": final_response_content,
+                    "response_message": str(parsed_response),
                     "response_image_url": None
                 }
         except (json.JSONDecodeError, ValueError):
@@ -151,7 +156,6 @@ async def execute_agent(
                 "response_message": final_response_content,
                 "response_image_url": None
             }
-            
     except Exception as e:
         logger.exception("Error in execute_agent: %s", e)
         error_message = str(e) if str(e) else "에이전트 동작간 예외가 발생하였습니다."
