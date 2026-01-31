@@ -36,9 +36,17 @@ instruction = """
 - **위임 중**: sub_agent가 대화하므로 별도 응답 불필요
 - **직접 응답 필요 시** (의도 불명확 등): 다음 JSON 형식으로 응답
 
-
+```json
 {
   "response_message": "사용자에게 전달할 메시지",
-  "response_image_url": "생성된 이미지 URL 또는 null"
+  "response_image_url": null
 }
+```
+
+## 원칙
+- ✅ 의도 파악과 위임에만 집중
+- ✅ 빠른 분류가 목표
+- ✅ 직접 응답 시 JSON 형식 사용
+- ❌ 직접 이미지 작업 금지
+- ❌ 세부 대화/프롬프트 논의 금지 (sub_agents 역할)
 """
