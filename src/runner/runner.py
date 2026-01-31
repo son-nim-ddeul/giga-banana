@@ -114,13 +114,35 @@ async def execute_agent(
     try:
         async for event in runner.run_async(user_id=user_id, session_id=session_id, new_message=execute_message):
             if event.is_final_response() and event.content and event.content.parts:
-                # For output_schema, the content is the JSON string itself
+                # output_schema가 없으면 일반 텍스트 응답
                 final_response_content = event.content.parts[0].text
 
         if not final_response_content:
-            return final_response_content
+            return {
+                "response_message": "이미지 생성/수정 결과가 없습니다.",
+                "response_image_url": None
+            }
 
-        return json.loads(final_response_content)
+        # JSON 형태인지 확인 후 파싱
+        try:
+            # JSON 문자열인 경우 파싱해서 반환
+            parsed_response = json.loads(final_response_content)
+            # ImageResponse 스키마에 맞는지 검증
+            if isinstance(parsed_response, dict) and "response_message" in parsed_response:
+                return parsed_response
+            else:
+                # JSON이지만 예상한 형태가 아닌 경우
+                return {
+                    "response_message": final_response_content,
+                    "response_image_url": None
+                }
+        except (json.JSONDecodeError, ValueError):
+            # JSON이 아닌 일반 텍스트 응답인 경우
+            return {
+                "response_message": final_response_content,
+                "response_image_url": None
+            }
+            
     except Exception as e:
         logger.exception("Error in execute_agent: %s", e)
         error_message = str(e) if str(e) else "에이전트 동작간 예외가 발생하였습니다."

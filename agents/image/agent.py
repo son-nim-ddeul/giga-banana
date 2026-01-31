@@ -2,7 +2,6 @@ from google.adk.apps import App
 from google.adk.agents import LlmAgent
 from google.adk.models.google_llm import Gemini
 from google.genai import types
-from src.image.schemas import ImageResponse
 
 from .plugins.s3_url_presign import S3UrlPresignPlugin
 from .sub_agents.image_generate.agent import image_generate_agent
@@ -17,7 +16,6 @@ root_agent = LlmAgent(
     ),
     description=description,
     instruction=instruction,
-    output_schema=ImageResponse,
     sub_agents=[
         image_generate_agent,
         image_modifier_agent
