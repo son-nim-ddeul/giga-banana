@@ -51,6 +51,14 @@ async def _edit_image_async(
         
         # Presigned URL 또는 일반 HTTP URL이 온 경우 처리
         if original_image_url.startswith("http://") or original_image_url.startswith("https://"):
+            # Gemini 내부 URL 감지 (접근 불가능)
+            if "model-garden.gemini.run" in original_image_url or "gemini.run" in original_image_url:
+                raise Exception(
+                    f"Gemini 내부 임시 URL은 사용할 수 없습니다. "
+                    f"이미지를 다시 업로드하거나 S3에 저장된 이미지를 사용해주세요. "
+                    f"URL: {original_image_url}"
+                )
+            
             # S3 presigned URL인 경우 S3 URI로 변환 시도
             if "giga-banana.s3" in original_image_url or "s3.ap-northeast-2.amazonaws.com/giga-banana" in original_image_url:
                 logger.info(f"S3 presigned URL 감지. S3 URI로 변환 시도")
@@ -178,7 +186,6 @@ async def _edit_image_async(
 
 async def edit_image(
     tool_context: ToolContext,
-    original_image_url: str,
     edit_prompt: str,
     aspect_ratio: str = "1:1",
     image_size: str = "1K"
@@ -186,8 +193,10 @@ async def edit_image(
     """
     기존 이미지를 수정 프롬프트에 따라 편집합니다.
     
+    현재 메시지에 첨부된 이미지를 자동으로 감지하여 수정합니다.
+    사용자는 이미지를 업로드/첨부하고 수정 요청을 하면 됩니다.
+    
     Args:
-        original_image_url: 원본 이미지 S3 URI (s3://giga-banana/images/...)
         edit_prompt: 이미지 수정을 위한 상세한 영어 프롬프트. 
                      보존할 요소("Keep ... unchanged")와 변경할 요소를 명확히 포함해야 합니다.
         aspect_ratio: 이미지 종횡비 (1:1, 4:3, 16:9, 9:16). 기본값: 1:1
@@ -198,6 +207,23 @@ async def edit_image(
     """
     # tool_context에서 user_id 추출
     user_id = tool_context.user_id
+    
+    # 현재 메시지에 첨부된 이미지 찾기
+    original_image_url = None
+    if tool_context.current_message and tool_context.current_message.parts:
+        for part in tool_context.current_message.parts:
+            if hasattr(part, 'file_data') and part.file_data:
+                file_uri = getattr(part.file_data, 'file_uri', None)
+                if file_uri:
+                    original_image_url = file_uri
+                    logger.info(f"현재 메시지에서 이미지 감지: {file_uri}")
+                    break
+    
+    if not original_image_url:
+        raise Exception(
+            "수정할 이미지를 찾을 수 없습니다. "
+            "이미지를 첨부한 후 수정 요청을 해주세요."
+        )
     
     # async 함수 실행
     return await _edit_image_async(
