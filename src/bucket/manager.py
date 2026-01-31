@@ -65,6 +65,26 @@ class S3BucketManager(BaseModel):
                 logger.error(f"Failed to upload file: {e}")
                 raise e
 
+    async def download_file(self, file_uri: str) -> bytes:
+        """S3 파일 다운로드 및 바이너리 데이터 반환 메서드
+        
+        Args:
+            file_uri: S3 URI (s3://giga-banana/...)
+            
+        Returns:
+            파일 바이너리 데이터
+        """
+        async with self._client() as s3:
+            key = file_uri.replace("s3://giga-banana/", "")
+            try:
+                response = await s3.get_object(Bucket="giga-banana", Key=key)
+                data = await response['Body'].read()
+                logger.info(f"S3 파일 다운로드 완료: {file_uri}")
+                return data
+            except Exception as e:
+                logger.error(f"Failed to download file: {e}")
+                raise e
+
     def generate_presigned_url(self, file_uri: str, expiration: int = 3600) -> str:
         """S3 presigned URL 생성 (동기 함수 - generate_presigned_url은 비동기 불필요)"""
         import boto3

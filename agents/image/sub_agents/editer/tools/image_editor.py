@@ -49,22 +49,19 @@ async def _edit_image_async(
     try:
         logger.info(f"이미지 수정 시작 - user_id: {user_id}, original: {original_image_url}")
         
-        # S3 URI에서 presigned URL 생성
+        # S3에서 원본 이미지 다운로드
         bucket_manager = S3BucketManager()
-        presigned_url = bucket_manager.generate_presigned_url(
-            file_uri=original_image_url,
-            expiration=3600  # 1시간
-        )
+        original_image_data = await bucket_manager.download_file(file_uri=original_image_url)
         
-        logger.info(f"Presigned URL 생성 완료")
+        logger.info(f"원본 이미지 다운로드 완료 ({len(original_image_data)} bytes)")
         
         # Gemini 클라이언트 생성
         client = genai.Client(api_key=settings.google_api_key)
         
-        # API 요청 콘텐츠 구성: 원본 이미지 + 수정 프롬프트
+        # API 요청 콘텐츠 구성: 원본 이미지 바이너리 + 수정 프롬프트
         contents = [
-            types.Part.from_uri(
-                file_uri=presigned_url,
+            types.Part.from_bytes(
+                data=original_image_data,
                 mime_type="image/jpeg"
             ),
             types.Part.from_text(text=edit_prompt)
