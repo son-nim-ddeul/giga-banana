@@ -32,6 +32,23 @@ async def create_session(request: schemas.SessionCreateRequest, db: Session = De
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get(
+    "/list",
+    response_model=schemas.SessionListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="세션 목록 조회",
+    description="세션 목록을 조회합니다."
+)
+async def list_sessions(user_id: str, db: Session = Depends(get_db)):
+    try:
+        sessions = service.get_list_sessions(db, user_id)
+        return schemas.SessionListResponse(
+            user_id=user_id,
+            sessions=[schemas.SessionGetResponse(session_id=session.id) for session in sessions]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.get(
     "/{session_id}",
     response_model=schemas.SessionGetResponse,
     status_code=status.HTTP_200_OK,
@@ -45,25 +62,6 @@ async def get_single_session(session_id: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="세션을 찾을 수 없습니다.")
         return schemas.SessionGetResponse(
             session_id=session.id
-        )
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-@router.get(
-    "/list",
-    response_model=schemas.SessionListResponse,
-    status_code=status.HTTP_200_OK,
-    summary="세션 목록 조회",
-    description="세션 목록을 조회합니다."
-)
-async def list_sessions(user_id: str, db: Session = Depends(get_db)):
-    try:
-        sessions = service.get_list_sessions(db, user_id)
-        if not sessions:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="세션을 찾을 수 없습니다.")
-        return schemas.SessionListResponse(
-            user_id=user_id,
-            sessions=[schemas.SessionGetResponse(session_id=session.id) for session in sessions]
         )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
