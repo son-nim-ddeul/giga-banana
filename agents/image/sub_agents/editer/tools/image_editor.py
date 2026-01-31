@@ -213,15 +213,15 @@ async def edit_image(
     
     # 최근 이벤트부터 역순으로 탐색
     for event in reversed(session.events):
-        # user role의 content만 확인
-        if event.content and event.content.role == 'user':
+    # user role과 model role 모두 확인 (사용자 업로드 + 생성된 이미지)
+        if event.content and event.content.role in ['user', 'model']:
             if hasattr(event.content, 'parts') and event.content.parts:
                 for part in event.content.parts:
                     if hasattr(part, 'file_data') and part.file_data:
                         file_uri = getattr(part.file_data, 'file_uri', None)
                         if file_uri:
                             original_image_url = file_uri
-                            logger.info(f"세션 이벤트에서 이미지 감지: {file_uri}")
+                            logger.info(f"세션 이벤트에서 이미지 감지 (role={event.content.role}): {file_uri}")
                             break
             if original_image_url:
                 break
