@@ -69,7 +69,7 @@ class S3BucketManager(BaseModel):
         """S3 presigned URL 생성"""
         key = file_uri.replace(f"s3://giga-banana/", "")
         async with self._client() as s3:
-            url = await s3.generate_presigned_url(
+            url = s3.generate_presigned_url(
                 'get_object',
                 Params={'Bucket': 'giga-banana', 'Key': key},
                 ExpiresIn=expiration
