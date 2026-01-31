@@ -23,8 +23,7 @@ class S3BucketManager(BaseModel):
         import aioboto3
         if self._session is None:
             session_kwargs = {
-                "region_name": "ap-northeast-2",
-                "bucket_name": "giga-banana"
+                "region_name": "ap-northeast-2"
             }
             
             self._session = aioboto3.Session(**session_kwargs)
