@@ -67,7 +67,7 @@ class GeneratedImageResponse(BaseModel):
         return cls(user_id=user_id, image_url=image_url)
 
 
-def generate_image(user_id: str, workflow: dict[str, Any]) -> GeneratedImageResponse:
+def generate_image(user_id: str, workflow: dict[str, Any]) -> dict[str, str]:
     """
     이미지를 생성합니다.
 
@@ -76,11 +76,11 @@ def generate_image(user_id: str, workflow: dict[str, Any]) -> GeneratedImageResp
         workflow: 워크플로우 정의
 
     Returns:
-        이미지 생성 결과 (user_id, image_url)
+        dict[str, str]: 이미지 생성 결과 ({"user_id": user_id, "image_url": image_url})
     """
     payload = {"user_id": user_id, "workflow": workflow}
     response = requests.post(WORKFLOW_RUN_URL, json=payload, timeout=120)
-    return GeneratedImageResponse.create_from_response(response)
+    return GeneratedImageResponse.create_from_response(response).model_dump_json()
 
 
 def extract_image_prompt(image_url: str, top_n: int = DEFAULT_TOP_N) -> list[str]:
