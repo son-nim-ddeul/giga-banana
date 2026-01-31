@@ -105,7 +105,7 @@ async def _generate_image_async(
         raise Exception(f"이미지 생성 중 오류 발생: {str(error)}")
 
 
-def generate_image(
+async def generate_image(
     tool_context: ToolContext,
     prompt: str,
     aspect_ratio: str = "1:1",
@@ -126,9 +126,9 @@ def generate_image(
     user_id = tool_context.user_id
     
     # async 함수 실행
-    return asyncio.run(_generate_image_async(
+    return await _generate_image_async(
         prompt=prompt,
         user_id=user_id,
         aspect_ratio=aspect_ratio,
         image_size=image_size
-    ))
+    )
