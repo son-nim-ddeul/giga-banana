@@ -193,8 +193,7 @@ async def edit_image(
     """
     기존 이미지를 수정 프롬프트에 따라 편집합니다.
     
-    현재 메시지에 첨부된 이미지를 자동으로 감지하여 수정합니다.
-    사용자는 이미지를 업로드/첨부하고 수정 요청을 하면 됩니다.
+    현재 세션의 최근 메시지에서 업로드된 이미지를 자동으로 감지하여 수정합니다.
     
     Args:
         edit_prompt: 이미지 수정을 위한 상세한 영어 프롬프트. 
@@ -208,21 +207,29 @@ async def edit_image(
     # tool_context에서 user_id 추출
     user_id = tool_context.user_id
     
-    # 현재 메시지에 첨부된 이미지 찾기
+    # 세션의 최근 이벤트에서 이미지 file_uri 찾기
     original_image_url = None
-    if tool_context.current_message and tool_context.current_message.parts:
-        for part in tool_context.current_message.parts:
-            if hasattr(part, 'file_data') and part.file_data:
-                file_uri = getattr(part.file_data, 'file_uri', None)
-                if file_uri:
-                    original_image_url = file_uri
-                    logger.info(f"현재 메시지에서 이미지 감지: {file_uri}")
-                    break
+    session = tool_context.invocation_context.session
+    
+    # 최근 이벤트부터 역순으로 탐색
+    for event in reversed(session.events):
+        # user role의 content만 확인
+        if event.content and event.content.role == 'user':
+            if hasattr(event.content, 'parts') and event.content.parts:
+                for part in event.content.parts:
+                    if hasattr(part, 'file_data') and part.file_data:
+                        file_uri = getattr(part.file_data, 'file_uri', None)
+                        if file_uri:
+                            original_image_url = file_uri
+                            logger.info(f"세션 이벤트에서 이미지 감지: {file_uri}")
+                            break
+            if original_image_url:
+                break
     
     if not original_image_url:
         raise Exception(
             "수정할 이미지를 찾을 수 없습니다. "
-            "이미지를 첨부한 후 수정 요청을 해주세요."
+            "이미지를 업로드한 후 수정 요청을 해주세요."
         )
     
     # async 함수 실행
