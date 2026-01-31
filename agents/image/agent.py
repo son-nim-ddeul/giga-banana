@@ -5,16 +5,23 @@ from google.genai import types
 from src.image.schemas import ImageResponse
 
 from .plugins.s3_url_presign import S3UrlPresignPlugin
+from .sub_agents.image_generate.agent import image_generate_agent
+from .sub_agents.modifier.agent import agent as image_modifier_agent
+from .prompt import description, instruction
 
 root_agent = LlmAgent(
-    name="image_specailist",
-    model = Gemini(
+    name="image_specialist",
+    model=Gemini(
         model="gemini-2.5-flash",
         retry_options=types.HttpRetryOptions(initial_delay=20, attempts=3)
     ),
-    description="당신은 대화 전문가입니다. 유저의 질문에 대해 적절한 답변을 합니다.",
-    instruction="당신은 대화 전문가입니다. 유저의 질문에 대해 적절한 답변을 합니다.",
-    output_schema=ImageResponse
+    description=description,
+    instruction=instruction,
+    output_schema=ImageResponse,
+    sub_agents=[
+        image_generate_agent,
+        image_modifier_agent
+    ]
 )
 
 app = App(
