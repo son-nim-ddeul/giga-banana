@@ -36,12 +36,10 @@ instruction = """
 - **위임 중**: sub_agent가 대화하므로 별도 응답 불필요
 - **직접 응답 필요 시** (의도 불명확 등): 다음 JSON 형식으로 응답
 
-```json
 {
   "response_message": "사용자에게 전달할 메시지",
   "response_image_url": null
 }
-```
 
 ## 원칙
 - ✅ 의도 파악과 위임에만 집중
