@@ -21,7 +21,7 @@ def initialize_adk_services():
     global _session_service, _runners
     
     # SessionService 초기화
-    db_url = f"postgresql://{settings.database_user}:{settings.database_password}@{settings.database_host}:{settings.database_port}/{settings.database_name}"
+    db_url = f"postgresql+asyncpg://{settings.database_user}:{settings.database_password}@{settings.database_host}:{settings.database_port}/{settings.database_name}"
     _session_service = DatabaseSessionService(db_url=db_url)
     
     # Runner 초기화
