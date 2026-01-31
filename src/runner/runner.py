@@ -54,6 +54,8 @@ async def get_session(
             user_id=user_id,
             session_id=session_id
         )
+        if not session:
+            raise Exception(f"세션을 찾을 수 없습니다. session_id={session_id}")
     else:
         session = await session_service.create_session(
             app_name=image_app.name,
@@ -61,7 +63,7 @@ async def get_session(
             user_id=user_id
         )
         if not session:
-            raise Exception(f"세션을 찾을 수 없습니다. session_id={session_id}")
+            raise Exception(f"세션 생성에 실패하였습니다.")
     return session
 
 
@@ -75,7 +77,7 @@ async def setup_session_and_runner(
     Runner는 캐싱된 싱글턴을 사용합니다.
     """
     runner = get_runner(image_app.name)
-    session = get_session(
+    session = await get_session(
         user_id=user_id,
         session_id=session_id,
         state_config=state_config
