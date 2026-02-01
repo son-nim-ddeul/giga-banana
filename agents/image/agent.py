@@ -13,7 +13,7 @@ root_agent = LlmAgent(
     name="image_specialist",
     model=Gemini(
         model="gemini-2.5-flash",
-        retry_options=types.HttpRetryOptions(initial_delay=20, attempts=3)
+        retry_options=types.HttpRetryOptions(initial_delay=10, attempts=10)
     ),
     description=description,
     instruction=instruction,

@@ -17,7 +17,7 @@ agent = LlmAgent(
     name="image_modifier",
     model=Gemini(
         model="gemini-2.5-flash",
-        retry_options=types.HttpRetryOptions(initial_delay=20, attempts=3)
+        retry_options=types.HttpRetryOptions(initial_delay=10, attempts=10)
     ),
     description="당신은 stable diffusion 워크플로우를 생성하는 전문가입니다. 유저의 요청을 바탕으로 이미지를 수정하기 위한 워크플로우를 생성합니다.",
     instruction="""

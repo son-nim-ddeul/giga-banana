@@ -90,7 +90,7 @@ prompt_generator_agent = LlmAgent(
     name="prompt_generator",
     model = Gemini(
         model="gemini-3-flash-preview",
-        retry_options=types.HttpRetryOptions(initial_delay=20, attempts=3)
+        retry_options=types.HttpRetryOptions(initial_delay=10, attempts=10)
     ),
     description=description,
     instruction=instruction,
